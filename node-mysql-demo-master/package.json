@@ -1,0 +1,21 @@
+{
+  "name": "node-mysql-demo",
+  "version": "0.0.1",
+  "description": "Demo of linking MySQL to NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mysql",
+    "nodejs",
+    "intro"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^2.10.1",
+    "colors": "^1.1.2",
+    "mysql": "^2.9.0"
+  }
+}
