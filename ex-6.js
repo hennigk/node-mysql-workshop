@@ -17,21 +17,35 @@ connection.queryAsync("SELECT * FROM Account LIMIT 10")
     	return accounts[0];
     }
 )
-.map(
+.then(
     function(accounts){
-        return (connection.queryAsync("SELECT id, accountId, name FROM AddressBook WHERE accountId IN (" + accounts.id + ")"));
+        var accountIds = "";
+        for (var i = 0; i < accounts.length; i++) {
+            accountIds+= accounts[i].id.toString() +",";
+        }
+        return (accountIds.substring(0, accountIds.length-1))
+    }
+).then(
+    function(accountIds) {
+        return (connection.queryAsync("SELECT Account.email, AddressBook.id, AddressBook.accountId, AddressBook.name FROM Account JOIN AddressBook ON AddressBook.accountId = Account.id WHERE accountId IN (" + accountIds + ") ORDER BY AddressBook.accountId"));
     }
 ).then(
     function(billionAccounts){
-        for (var i = 0; i < billionAccounts.length; i++) {
-            var row = "";
-            var id = "";
-            for (var j=0; j < billionAccounts[i][0].length; j++) {
-                id = ("Account #" + billionAccounts[i][0][j]["accountId"] + "\n");
-                row += ("#" + billionAccounts[i][0][j].id + ": " + billionAccounts[i][0][j].name + "\n");
+        var idHolder = billionAccounts[0][0].accountId
+        var id = ""
+        var row = "";
+        for (var i = 0; i < billionAccounts[0].length; i++) {
+            if (billionAccounts[0][i].accountId === idHolder) {
+                id = ("#" + billionAccounts[0][i]["accountId"] + ": " + billionAccounts[0][i].email + "\n");
+                row += ("    #" + billionAccounts[0][i].id + ": "  + billionAccounts[0][i].name + "\n")
             }
-            console.log(id + row);
+            else {
+                console.log(id + row)
+                row = "";
+                idHolder = billionAccounts[0][i].accountId
+            }
         }
+        console.log(id + row)
     }
 ).finally(
     function() {
