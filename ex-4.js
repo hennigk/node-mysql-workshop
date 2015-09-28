@@ -16,16 +16,18 @@ connection.queryAsync("SELECT id, email FROM Account LIMIT 10").then(
     function(accounts) {
     	return accounts[0];
     }
-).map(
+).then(
     function(rows) {
         var id;
-        if (rows.id < 10) {
-            id = " #" + rows.id + ": ";
+        for (var i=0; i < rows.length; i++) {
+            if (rows[i].id < 10) {
+                id = " #" + rows[i].id + ": ";
+            }
+            else {
+                id = "#" + rows[i].id + ": ";
+            }
+        console.log(id.bold.black + rows[i].email);
         }
-        else {
-            id = "#" + rows.id + ": ";
-        }
-        console.log(id.bold.black + rows.email);
     }
 ).finally(
     function() {
