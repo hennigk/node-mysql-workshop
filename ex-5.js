@@ -19,7 +19,7 @@ connection.queryAsync("SELECT * FROM Account LIMIT 10")
 )
 .map(
     function(accounts){
-        return (connection.queryAsync("SELECT id, accountId, name FROM AddressBook WHERE accountId = " + accounts.id));
+        return (connection.queryAsync("SELECT Account.email, AddressBook.id, AddressBook.accountId, AddressBook.name FROM Account JOIN AddressBook ON AddressBook.accountId = Account.id WHERE accountId = " + accounts.id));
     }
 ).then(
     function(billionAccounts){
@@ -27,8 +27,8 @@ connection.queryAsync("SELECT * FROM Account LIMIT 10")
             var row = "";
             var id = "";
             for (var j=0; j < billionAccounts[i][0].length; j++) {
-                id = ("Account #" + billionAccounts[i][0][j]["accountId"] + "\n");
-                row += ("#" + billionAccounts[i][0][j].id + ": " + billionAccounts[i][0][j].name + "\n");
+                id = ("#" + billionAccounts[i][0][j]["accountId"] + ": " + billionAccounts[i][0][j].email + "\n");
+                row += ("    #" + billionAccounts[i][0][j].id + ": "  + billionAccounts[i][0][j].name + "\n");
             }
             console.log(id + row);
         }
