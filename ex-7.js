@@ -11,10 +11,29 @@ var connection = mysql.createConnection({
   database : 'addressbook'
 });
 
-connection.queryAsync("SELECT Account.id AS AccountId, Account.email AS AccountEmail, Account.password AS AccountPassword, Account.createdON AS AccountCreatedOn, Account.modifiedOn AS AccountModifiedOn, AddressBook.* FROM Account JOIN AddressBook ON AddressBook.accountId = Account.id").then(
+connection.queryAsync("SELECT Account.id AS AccountId, Account.email AS AccountEmail, Account.password AS AccountPassword, Account.createdON AS AccountCreatedOn, Account.modifiedOn AS AccountModifiedOn, AddressBook.* FROM Account JOIN AddressBook ON AddressBook.accountId = Account.id ORDER BY Account.id")
+.then(
     function(results) {
-    	var rows = results[0];
-    	console.log(rows)
+    	var data = results[0];
+    	return(data)
+    }
+).then(
+    function(rows){
+        var idHolder = rows[0].AccountId;
+        var id = ""
+        var row = "";
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i].accountId === idHolder) {
+                id = ("#" + rows[i]["AccountId"] + ": " + rows[i].AccountEmail + "\n");
+                row += ("    -"+ rows[i].name + "\n")
+            }
+            else {
+                console.log(id + row)
+                row = "";
+                idHolder = rows[i].AccountId
+            }
+        }
+        console.log(id + row)
     }
 ).finally(
     function() {
