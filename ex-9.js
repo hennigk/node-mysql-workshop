@@ -14,14 +14,7 @@ var connection = mysql.createConnection({
   database : 'addressbook'
 });
 
-var totalEntries
-//display 10 entries
-//ask user if they want more - prompt
-//recall function
-//compare last entry id with count
-//where in - send 
-//perform function to store a variable with the count number
-//function to end
+var totalEntries;
 
 function getEntry(endNum){
     var whereIn = "";
@@ -51,7 +44,7 @@ function getEntry(endNum){
             }
         return proceed(rows[9].id);
         }
-    )
+    );
 }
 
 
@@ -64,10 +57,11 @@ function proceed(endNum){
                 console.log("Goodbye");
                 end();
             }
-            else if ((endNum + 10) <  totalEntries) {
+            else if ((endNum + 10) <=  totalEntries) {
                 return getEntry(endNum + 10);
             }
             else {
+               console.log("no more entries to display");
                end(); 
             }
         }
@@ -78,9 +72,24 @@ function start() {
     connection.queryAsync("SELECT COUNT (*) FROM Account").then(
         function(results){
             totalEntries = results[0][0]["COUNT (*)"];
+            console.log(totalEntries);
         }
     ).then(
-        getEntry(10) 
+        function(){
+            console.log("Which entry would you like to start at?");
+            return prompt.getAsync("start").then(
+                function(input) {
+                    if (isNaN(input.start) || (Number(input.start) + 10 > totalEntries) || (Number(input.start) < 1)) {
+                        return getEntry(10);
+                    }
+                    else {
+                        var endNumber = Number(input.start) + 10;
+                        return getEntry(endNumber);
+                    }
+                }
+            );
+        }
+        
    );
 }
 
