@@ -15,12 +15,19 @@ var connection = mysql.createConnection({
 });
 
 var totalEntries;
+var idArray;
 
-function getEntry(endNum){
+function getEntry(startPos, endPosition){
     var whereIn = "";
-    var start = endNum - 9;
-    for (var i=start; i <=endNum; i++) {
-        whereIn += i + ",";
+    var endPos;
+    if (endPosition) {
+        endPos = endPosition;
+    }
+    else {
+        endPos = startPos + 10;
+    }
+    for (var i = startPos; i < endPos; i++) {
+        whereIn += idArray[i].id + ",";
     }
     connection.queryAsync("SELECT id, email FROM Account WHERE id IN (" + whereIn.substring(0, whereIn.length-1) + ") ORDER BY id ASC")
     .then(
@@ -42,14 +49,12 @@ function getEntry(endNum){
                 }
                 console.log(id.bold.black + rows[i].email.cyan);
             }
-        return proceed(rows[9].id);
+        return proceed(endPos);
         }
     );
 }
 
-
-
-function proceed(endNum){
+function proceed(idArrayPos){
     console.log("Would you like to display Next 10 Results?\nenter 'no' to exit");
     return prompt.getAsync("continue").then(
         function(message){
@@ -57,8 +62,11 @@ function proceed(endNum){
                 console.log("Goodbye");
                 end();
             }
-            else if ((endNum + 10) <=  totalEntries) {
-                return getEntry(endNum + 10);
+            else if ((idArrayPos + 9) <=  totalEntries) {
+                return getEntry(idArrayPos);
+            }
+            else if ((idArrayPos) <  totalEntries) {
+                return getEntry(idArrayPos, totalEntries);
             }
             else {
                console.log("no more entries to display");
@@ -68,6 +76,12 @@ function proceed(endNum){
     );
 }
 
+
+function end(){
+    connection.end();
+}
+
+
 function start() {
     connection.queryAsync("SELECT COUNT (*) FROM Account").then(
         function(results){
@@ -76,25 +90,33 @@ function start() {
         }
     ).then(
         function(){
-            console.log("Which entry would you like to start at?");
-            return prompt.getAsync("start").then(
-                function(input) {
-                    if (isNaN(input.start) || (Number(input.start) + 10 > totalEntries) || (Number(input.start) < 1)) {
-                        return getEntry(10);
-                    }
-                    else {
-                        var endNumber = Number(input.start) + 10;
-                        return getEntry(endNumber);
-                    }
+            connection.queryAsync("SELECT id FROM Account ORDER BY id ASC").then(
+            function(results){
+                idArray = results[0];
+                return idArray;
+            }).then(
+                function(ids){
+                console.log("Which position would you like to start at?");
+                return prompt.getAsync("start").then(
+                    function(input) {
+                        var start = Number(input.start) - 1;
+                        if (isNaN(input.start) || (Number(input.start) > totalEntries) || (Number(input.start) < 1)) {
+                            return getEntry(0);
+                        }
+                        else if ((Number(input.start)) > (totalEntries - 10)) {
+                            return getEntry(start, totalEntries);
+                        }
+                        else {
+                            return getEntry(start);
+                        }
                 }
             );
         }
         
    );
+        }
+    );
 }
 
-function end(){
-    connection.end();
-}
 
 start();
