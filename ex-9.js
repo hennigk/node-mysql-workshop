@@ -15,21 +15,17 @@ var connection = mysql.createConnection({
 });
 
 var totalEntries;
-var idArray;
 
-function getEntry(startPos, endPosition){
+function getEntry(startPos, offset){
     var whereIn = "";
-    var endPos;
-    if (endPosition) {
-        endPos = endPosition;
+    var endrow = 10;
+    if (offset) {
+        endrow = offset;
     }
-    else {
-        endPos = startPos + 10;
-    }
-    for (var i = startPos; i < endPos; i++) {
-        whereIn += idArray[i].id + ",";
-    }
-    connection.queryAsync("SELECT id, email FROM Account WHERE id IN (" + whereIn.substring(0, whereIn.length-1) + ") ORDER BY id ASC")
+    // for (var i = startPos; i < endPos; i++) {
+    //     whereIn += idArray[i].id + ",";
+    // }
+    connection.queryAsync("SELECT id, email FROM Account ORDER BY id ASC LIMIT " + startPos + ", " + endrow)
     .then(
         function(accounts) {
     	    return accounts[0];
@@ -41,15 +37,15 @@ function getEntry(startPos, endPosition){
                 if (rows[i].id < 10) {
                     id = "  #" + rows[i].id + ": ";
                 }
-                if (rows[i].id > 10 && rows[i].id < 100) {
-                    id = "  #" + rows[i].id + ": ";
+                else if (rows[i].id >= 10 && rows[i].id < 100) {
+                    id = " #" + rows[i].id + ": ";
                 }
                 else {
                     id = "#" + rows[i].id + ": ";
                 }
                 console.log(id.bold.black + rows[i].email.cyan);
             }
-        return proceed(endPos);
+        return proceed(startPos + endrow);
         }
     );
 }
@@ -62,7 +58,7 @@ function proceed(idArrayPos){
                 console.log("Goodbye");
                 end();
             }
-            else if ((idArrayPos + 9) <=  totalEntries) {
+            else if ((idArrayPos + 10) <=  totalEntries) {
                 return getEntry(idArrayPos);
             }
             else if ((idArrayPos) <  totalEntries) {
@@ -86,36 +82,28 @@ function start() {
     connection.queryAsync("SELECT COUNT (*) FROM Account").then(
         function(results){
             totalEntries = results[0][0]["COUNT (*)"];
-            console.log(totalEntries);
         }
     ).then(
         function(){
-            connection.queryAsync("SELECT id FROM Account ORDER BY id ASC").then(
-            function(results){
-                idArray = results[0];
-                return idArray;
-            }).then(
-                function(ids){
-                console.log("Which position would you like to start at?");
-                return prompt.getAsync("start").then(
-                    function(input) {
-                        var start = Number(input.start) - 1;
-                        if (isNaN(input.start) || (Number(input.start) > totalEntries) || (Number(input.start) < 1)) {
-                            return getEntry(0);
-                        }
-                        else if ((Number(input.start)) > (totalEntries - 10)) {
-                            return getEntry(start, totalEntries);
-                        }
-                        else {
-                            return getEntry(start);
-                        }
+        console.log("Which row would you like to start at?");
+        return prompt.getAsync("start").then(
+            function(input) {
+                var start = Number(input.start) - 1;
+                if (isNaN(input.start) || (Number(input.start) > totalEntries) || (Number(input.start) < 1)) {
+                    return getEntry(0);
+                }
+                else if ((Number(input.start)) > (totalEntries - 10)) {
+                    var offset = totalEntries - start;
+                    return getEntry(start, offset);
+                }
+                else {
+                    return getEntry(start);
+                }
                 }
             );
         }
         
    );
-        }
-    );
 }
 
 
